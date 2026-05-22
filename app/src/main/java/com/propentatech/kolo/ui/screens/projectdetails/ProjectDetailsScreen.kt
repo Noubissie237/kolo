@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -148,34 +149,61 @@ fun ProjectDetailsScreen(
                     onClick = { showFabMenu = !showFabMenu },
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier.size(64.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = strings.addItem)
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = strings.addItem,
+                        modifier = Modifier.size(28.dp)
+                    )
                 }
                 
                 DropdownMenu(
                     expanded = showFabMenu,
-                    onDismissRequest = { showFabMenu = false }
+                    onDismissRequest = { showFabMenu = false },
+                    modifier = Modifier
+                        .offset(x = (-8).dp)
                 ) {
                     DropdownMenuItem(
-                        text = { Text(strings.addItem) },
+                        text = { 
+                            Text(
+                                text = strings.addItem,
+                                style = MaterialTheme.typography.bodyLarge
+                            ) 
+                        },
                         onClick = {
                             showFabMenu = false
                             onAddItem()
                         },
                         leadingIcon = {
-                            Icon(Icons.Default.ShoppingBag, contentDescription = null)
-                        }
+                            Icon(
+                                Icons.Default.ShoppingBag,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        modifier = Modifier.padding(vertical = 4.dp)
                     )
                     DropdownMenuItem(
-                        text = { Text(strings.addSaving) },
+                        text = { 
+                            Text(
+                                text = strings.addSaving,
+                                style = MaterialTheme.typography.bodyLarge
+                            ) 
+                        },
                         onClick = {
                             showFabMenu = false
                             onAddSaving()
                         },
                         leadingIcon = {
-                            Icon(Icons.Default.Savings, contentDescription = null)
-                        }
+                            Icon(
+                                Icons.Default.Savings,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        modifier = Modifier.padding(vertical = 4.dp)
                     )
                 }
             }
