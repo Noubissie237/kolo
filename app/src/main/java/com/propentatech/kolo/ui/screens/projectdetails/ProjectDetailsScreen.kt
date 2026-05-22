@@ -23,10 +23,14 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
+import androidx.compose.material.icons.filled.Savings
+import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -81,6 +85,7 @@ fun ProjectDetailsScreen(
     val savedAmount by viewModel.getProjectSavedAmount(projectId).collectAsState(initial = 0.0)
 
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    var showFabMenu by remember { mutableStateOf(false) }
 
     if (project == null) return
 
@@ -138,26 +143,40 @@ fun ProjectDetailsScreen(
             )
         },
         floatingActionButton = {
-            Column(horizontalAlignment = Alignment.End) {
-                ExtendedFloatingActionButton(
-                    onClick = onAddItem,
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 16.dp)
+            Box {
+                FloatingActionButton(
+                    onClick = { showFabMenu = !showFabMenu },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(strings.addItem)
+                    Icon(Icons.Default.Add, contentDescription = strings.addItem)
                 }
                 
-                ExtendedFloatingActionButton(
-                    onClick = onAddSaving,
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
+                DropdownMenu(
+                    expanded = showFabMenu,
+                    onDismissRequest = { showFabMenu = false }
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(strings.addSaving)
+                    DropdownMenuItem(
+                        text = { Text(strings.addItem) },
+                        onClick = {
+                            showFabMenu = false
+                            onAddItem()
+                        },
+                        leadingIcon = {
+                            Icon(Icons.Default.ShoppingBag, contentDescription = null)
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(strings.addSaving) },
+                        onClick = {
+                            showFabMenu = false
+                            onAddSaving()
+                        },
+                        leadingIcon = {
+                            Icon(Icons.Default.Savings, contentDescription = null)
+                        }
+                    )
                 }
             }
         },
@@ -176,15 +195,6 @@ fun ProjectDetailsScreen(
                     savedAmount = savedAmount,
                     targetAmount = targetAmount,
                     progress = progress
-                )
-            }
-            
-            // Forecast Section
-            item {
-                ProjectForecast(
-                    project = currentProject,
-                    savedAmount = savedAmount,
-                    targetAmount = targetAmount
                 )
             }
 
@@ -401,38 +411,25 @@ fun ProjectItemRow(
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = if (item.requiresSaving) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
-                contentDescription = null,
-                tint = if (item.requiresSaving) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(24.dp)
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.weight(1f)
             )
             
-            Spacer(modifier = Modifier.width(16.dp))
-            
-            Column(modifier = Modifier.weight(1f)) {
+            if (item.requiresSaving) {
                 Text(
-                    text = item.title,
+                    text = KoloUtils.formatAmountWithCurrency(item.amount, strings.currency),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onBackground
                 )
-                if (!item.requiresSaving) {
-                    Text(
-                        text = strings.itemRequiresSaving + ": " + strings.no,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                
+                Spacer(modifier = Modifier.width(8.dp))
             }
-            
-            Text(
-                text = KoloUtils.formatAmountWithCurrency(item.amount, strings.currency),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground
-            )
             
             IconButton(onClick = onDelete) {
                 Icon(

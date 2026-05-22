@@ -129,4 +129,19 @@ object KoloUtils {
         val (months, days) = monthsAndDaysRemaining(targetDate)
         return String.format(format, months, days)
     }
+
+    /**
+     * Format time remaining without showing '0 months' or '0 days'.
+     * Examples: "5 jours", "1 mois", "1 mois 15 jours"
+     */
+    fun formatTimeRemainingClean(targetDate: Long, monthsLabel: String, daysLabel: String): String {
+        val (months, days) = monthsAndDaysRemaining(targetDate)
+        
+        return when {
+            months > 0 && days > 0 -> "$months $monthsLabel $days $daysLabel"
+            months > 0 && days == 0 -> "$months $monthsLabel"
+            months == 0 && days > 0 -> "$days $daysLabel"
+            else -> "0 $daysLabel"
+        }
+    }
 }

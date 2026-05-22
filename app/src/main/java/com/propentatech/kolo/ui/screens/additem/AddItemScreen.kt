@@ -1,5 +1,6 @@
 package com.propentatech.kolo.ui.screens.additem
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -54,7 +55,7 @@ fun AddItemScreen(
 
     var title by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
-    var requiresSaving by remember { mutableStateOf(true) }
+    var requiresSaving by remember { mutableStateOf(false) }
 
     var titleError by remember { mutableStateOf(false) }
     var amountError by remember { mutableStateOf(false) }
@@ -91,19 +92,6 @@ fun AddItemScreen(
                 isError = titleError
             )
             
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            KoloTextField(
-                value = amount,
-                onValueChange = { 
-                    amount = it
-                    amountError = false
-                },
-                label = strings.itemAmount,
-                isError = amountError,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-
             Spacer(modifier = Modifier.height(24.dp))
             
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -115,8 +103,30 @@ fun AddItemScreen(
                 Spacer(modifier = Modifier.weight(1f))
                 Switch(
                     checked = requiresSaving,
-                    onCheckedChange = { requiresSaving = it }
+                    onCheckedChange = { 
+                        requiresSaving = it
+                        if (!it) {
+                            amount = ""
+                            amountError = false
+                        }
+                    }
                 )
+            }
+
+            AnimatedVisibility(visible = requiresSaving) {
+                Column {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    KoloTextField(
+                        value = amount,
+                        onValueChange = { 
+                            amount = it
+                            amountError = false
+                        },
+                        label = strings.itemAmount,
+                        isError = amountError,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -124,18 +134,23 @@ fun AddItemScreen(
             KoloButton(
                 text = strings.projectSave,
                 onClick = {
-                    val parsedAmount = amount.toDoubleOrNull()
                     val isTitleValid = title.isNotBlank()
-                    val isAmountValid = parsedAmount != null && parsedAmount > 0
+                    var isAmountValid = true
+                    var parsedAmount = 0.0
 
                     if (!isTitleValid) titleError = true
-                    if (!isAmountValid) amountError = true
+
+                    if (requiresSaving) {
+                        parsedAmount = amount.toDoubleOrNull() ?: 0.0
+                        isAmountValid = parsedAmount > 0
+                        if (!isAmountValid) amountError = true
+                    }
 
                     if (isTitleValid && isAmountValid) {
                         viewModel.addProjectItem(
                             projectId = projectId,
                             title = title.trim(),
-                            amount = parsedAmount!!,
+                            amount = parsedAmount,
                             requiresSaving = requiresSaving
                         )
                         onItemAdded()

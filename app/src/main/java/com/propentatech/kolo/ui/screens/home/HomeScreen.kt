@@ -17,7 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -75,7 +75,7 @@ fun HomeScreen(
                 actions = {
                     IconButton(onClick = onSettingsClick) {
                         Icon(
-                            imageVector = Icons.Default.Settings,
+                            imageVector = Icons.Default.Language,
                             contentDescription = strings.navSettings,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -180,7 +180,7 @@ fun ProjectCard(
 
     val progress = KoloUtils.calculateProgress(savedAmount, targetAmount)
     val remaining = KoloUtils.calculateRemaining(savedAmount, targetAmount)
-    val (months, days) = KoloUtils.monthsAndDaysRemaining(project.targetDate)
+    val timeRemaining = KoloUtils.formatTimeRemainingClean(project.targetDate, strings.months, strings.days)
 
     Surface(
         modifier = Modifier
@@ -270,7 +270,7 @@ fun ProjectCard(
                 )
                 
                 Text(
-                    text = String.format(strings.timeRemainingFormat, months, days),
+                    text = timeRemaining,
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

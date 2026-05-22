@@ -1,5 +1,6 @@
 package com.propentatech.kolo.ui.screens.onboarding
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,9 +24,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.propentatech.kolo.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.propentatech.kolo.ui.components.KoloButton
 import com.propentatech.kolo.ui.localization.LocalStrings
@@ -76,21 +80,22 @@ fun OnboardingScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Illustration Placeholder
+        // Logo
         Box(
             modifier = Modifier
                 .size(200.dp)
+                .clip(CircleShape)
                 .background(
                     color = MaterialTheme.colorScheme.surfaceVariant,
                     shape = CircleShape
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = "KOLO",
-                style = MaterialTheme.typography.displayMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Black
+            Image(
+                painter = painterResource(id = R.drawable.logo_kolo),
+                contentDescription = "Kolo Logo",
+                modifier = Modifier.size(120.dp),
+                contentScale = ContentScale.Fit
             )
         }
 
