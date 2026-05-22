@@ -1,0 +1,447 @@
+package com.propentatech.kolo.ui.screens.projectdetails
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.propentatech.kolo.data.local.entities.ProjectEntity
+import com.propentatech.kolo.data.local.entities.ProjectItemEntity
+import com.propentatech.kolo.domain.KoloUtils
+import com.propentatech.kolo.ui.localization.LocalStrings
+import com.propentatech.kolo.viewmodel.KoloViewModel
+import com.propentatech.kolo.viewmodel.KoloViewModelFactory
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ProjectDetailsScreen(
+    projectId: Long,
+    onBack: () -> Unit,
+    onAddItem: () -> Unit,
+    onAddSaving: () -> Unit,
+    onViewHistory: () -> Unit,
+    viewModel: KoloViewModel = viewModel(
+        factory = KoloViewModelFactory(
+            (LocalContext.current.applicationContext as com.propentatech.kolo.KoloApplication).repository,
+            (LocalContext.current.applicationContext as com.propentatech.kolo.KoloApplication).preferences,
+            (LocalContext.current.applicationContext as com.propentatech.kolo.KoloApplication).backupManager
+        )
+    )
+) {
+    val strings = LocalStrings.current
+    val project by viewModel.getProjectById(projectId).collectAsState(initial = null)
+    val items by viewModel.getProjectItems(projectId).collectAsState(initial = emptyList())
+    
+    val targetAmount by viewModel.getProjectTargetAmount(projectId).collectAsState(initial = 0.0)
+    val savedAmount by viewModel.getProjectSavedAmount(projectId).collectAsState(initial = 0.0)
+
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+
+    if (project == null) return
+
+    val currentProject = project!!
+    val progress = KoloUtils.calculateProgress(savedAmount, targetAmount)
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text(strings.projectDelete) },
+            text = { Text(strings.projectDeleteConfirm) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteConfirm = false
+                        viewModel.deleteProjectById(projectId)
+                        onBack()
+                    }
+                ) {
+                    Text(strings.yes, color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text(strings.cancel)
+                }
+            }
+        )
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(strings.projectDetails) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = strings.cancel)
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onViewHistory) {
+                        Icon(Icons.Default.History, contentDescription = strings.savingsHistory)
+                    }
+                    IconButton(onClick = { showDeleteConfirm = true }) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = strings.projectDelete,
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
+            )
+        },
+        floatingActionButton = {
+            Column(horizontalAlignment = Alignment.End) {
+                ExtendedFloatingActionButton(
+                    onClick = onAddItem,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(strings.addItem)
+                }
+                
+                ExtendedFloatingActionButton(
+                    onClick = onAddSaving,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(strings.addSaving)
+                }
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Header Section
+            item {
+                ProjectHeader(
+                    project = currentProject,
+                    savedAmount = savedAmount,
+                    targetAmount = targetAmount,
+                    progress = progress
+                )
+            }
+            
+            // Forecast Section
+            item {
+                ProjectForecast(
+                    project = currentProject,
+                    savedAmount = savedAmount,
+                    targetAmount = targetAmount
+                )
+            }
+
+            // Items List
+            item {
+                Text(
+                    text = strings.itemsList,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+                )
+            }
+
+            if (items.isEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = strings.itemsEmpty,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            } else {
+                items(items, key = { it.id }) { item ->
+                    ProjectItemRow(
+                        item = item,
+                        onDelete = { viewModel.deleteProjectItem(item) }
+                    )
+                }
+            }
+            
+            item { Spacer(modifier = Modifier.height(120.dp)) }
+        }
+    }
+}
+
+@Composable
+fun ProjectHeader(
+    project: ProjectEntity,
+    savedAmount: Double,
+    targetAmount: Double,
+    progress: Float
+) {
+    val strings = LocalStrings.current
+    
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(24.dp)
+    ) {
+        Column(modifier = Modifier.padding(24.dp)) {
+            Text(
+                text = project.title,
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.Bold
+            )
+            
+            if (!project.description.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = project.description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Big Stats
+            Text(
+                text = KoloUtils.formatAmountWithCurrency(savedAmount, strings.currency),
+                style = MaterialTheme.typography.displayMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = "${strings.homeSaved} / ${KoloUtils.formatAmountWithCurrency(targetAmount, strings.currency)}",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            
+            Spacer(modifier = Modifier.height(20.dp))
+            
+            // Progress Bar
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(12.dp)
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(fraction = (progress / 100f).coerceIn(0f, 1f))
+                        .height(12.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(MaterialTheme.colorScheme.primary)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Text(
+                text = "${progress.toInt()}% ${strings.statsProgress}",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+fun ProjectForecast(
+    project: ProjectEntity,
+    savedAmount: Double,
+    targetAmount: Double
+) {
+    val strings = LocalStrings.current
+    val remaining = KoloUtils.calculateRemaining(savedAmount, targetAmount)
+    val daily = KoloUtils.dailySavingTarget(remaining, project.targetDate)
+    val weekly = KoloUtils.weeklySavingTarget(remaining, project.targetDate)
+    val monthly = KoloUtils.monthlySavingTarget(remaining, project.targetDate)
+    
+    val daysRemaining = KoloUtils.daysRemaining(project.targetDate)
+    
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Text(
+                text = strings.statsSmartForecast,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            if (remaining <= 0) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = strings.statsCompleted,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            } else if (daysRemaining <= 0) {
+                Text(
+                    text = strings.statsOverdue,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.error
+                )
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    ForecastItem(strings.statsDailyTarget, daily)
+                    ForecastItem(strings.statsWeeklyTarget, weekly)
+                    ForecastItem(strings.statsMonthlyTarget, monthly)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ForecastItem(label: String, amount: Double) {
+    val strings = LocalStrings.current
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = KoloUtils.formatAmountWithCurrency(amount, strings.currency),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+fun ProjectItemRow(
+    item: ProjectItemEntity,
+    onDelete: () -> Unit
+) {
+    val strings = LocalStrings.current
+    
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = if (item.requiresSaving) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
+                contentDescription = null,
+                tint = if (item.requiresSaving) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp)
+            )
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = item.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                if (!item.requiresSaving) {
+                    Text(
+                        text = strings.itemRequiresSaving + ": " + strings.no,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            
+            Text(
+                text = KoloUtils.formatAmountWithCurrency(item.amount, strings.currency),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            
+            IconButton(onClick = onDelete) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = strings.delete,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    }
+}
