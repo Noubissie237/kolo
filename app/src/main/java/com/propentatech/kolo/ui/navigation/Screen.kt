@@ -17,6 +17,11 @@ sealed class Screen(val route: String) {
     /** Create a new project */
     data object CreateProject : Screen("create_project")
 
+    /** Edit an existing project */
+    data object EditProject : Screen("edit_project/{projectId}") {
+        fun createRoute(projectId: Long) = "edit_project/$projectId"
+    }
+
     /** Project details — items, savings, stats */
     data object ProjectDetails : Screen("project_details/{projectId}") {
         fun createRoute(projectId: Long) = "project_details/$projectId"

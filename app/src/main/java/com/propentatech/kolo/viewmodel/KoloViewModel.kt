@@ -175,6 +175,14 @@ class KoloViewModel(
         val jsonContent = backupManager.readBackupFromUri(uri)
         backupManager.importFromJson(jsonContent)
     }
+
+    suspend fun exportData(context: android.content.Context, uri: Uri) {
+        exportBackup(uri)
+    }
+
+    suspend fun importData(context: android.content.Context, uri: Uri) {
+        importBackup(uri)
+    }
 }
 
 /**

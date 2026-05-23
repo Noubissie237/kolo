@@ -17,7 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -75,7 +75,7 @@ fun HomeScreen(
                 actions = {
                     IconButton(onClick = onSettingsClick) {
                         Icon(
-                            imageVector = Icons.Default.Language,
+                            imageVector = Icons.Default.Settings,
                             contentDescription = strings.navSettings,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )

@@ -14,6 +14,7 @@ import com.propentatech.kolo.ui.screens.additem.AddItemScreen
 import com.propentatech.kolo.ui.screens.addsaving.AddSavingScreen
 import com.propentatech.kolo.ui.screens.createproject.CreateProjectScreen
 import com.propentatech.kolo.ui.screens.edititem.EditItemScreen
+import com.propentatech.kolo.ui.screens.editproject.EditProjectScreen
 import com.propentatech.kolo.ui.screens.home.HomeScreen
 import com.propentatech.kolo.ui.screens.onboarding.OnboardingScreen
 import com.propentatech.kolo.ui.screens.projectdetails.ProjectDetailsScreen
@@ -102,6 +103,21 @@ fun KoloNavGraph(
         }
 
         // ========================================================
+        // Edit Project
+        // ========================================================
+        composable(
+            route = Screen.EditProject.route,
+            arguments = listOf(navArgument("projectId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val projectId = backStackEntry.arguments?.getLong("projectId") ?: return@composable
+            EditProjectScreen(
+                projectId = projectId,
+                onBack = { navController.popBackStack() },
+                onProjectUpdated = { navController.popBackStack() }
+            )
+        }
+
+        // ========================================================
         // Project Details
         // ========================================================
         composable(
@@ -123,6 +139,9 @@ fun KoloNavGraph(
                 },
                 onEditItem = { itemId ->
                     navController.navigate(Screen.EditItem.createRoute(projectId, itemId))
+                },
+                onEditProject = {
+                    navController.navigate(Screen.EditProject.createRoute(projectId))
                 }
             )
         }

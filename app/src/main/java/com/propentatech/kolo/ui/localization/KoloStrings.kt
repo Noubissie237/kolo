@@ -131,6 +131,21 @@ data class KoloStrings(
     val settingsImportError: String,
     val settingsAbout: String,
     val settingsVersion: String,
+    val backupRestore: String,
+    val exportData: String,
+    val exportDataDesc: String,
+    val exportSuccess: String,
+    val importData: String,
+    val importDataDesc: String,
+    val importSuccess: String,
+
+    // ========================================================
+    // Contact
+    // ========================================================
+    val contact: String,
+    val website: String,
+    val email: String,
+    val sendEmail: String,
 
     // ========================================================
     // Common
@@ -241,6 +256,18 @@ val FrenchStrings = KoloStrings(
     settingsImportError = "Erreur lors de l'import des données",
     settingsAbout = "À propos",
     settingsVersion = "Version",
+    backupRestore = "Sauvegarde et restauration",
+    exportData = "Exporter les données",
+    exportDataDesc = "Sauvegarder tous vos projets et données",
+    exportSuccess = "Données exportées avec succès",
+    importData = "Importer les données",
+    importDataDesc = "Restaurer vos projets depuis une sauvegarde",
+    importSuccess = "Données importées avec succès",
+
+    contact = "Contact",
+    website = "Site web",
+    email = "Email",
+    sendEmail = "Envoyer un email",
 
     save = "Enregistrer",
     cancel = "Annuler",
@@ -348,6 +375,18 @@ val EnglishStrings = KoloStrings(
     settingsImportError = "Error importing data",
     settingsAbout = "About",
     settingsVersion = "Version",
+    backupRestore = "Backup & Restore",
+    exportData = "Export data",
+    exportDataDesc = "Backup all your projects and data",
+    exportSuccess = "Data exported successfully",
+    importData = "Import data",
+    importDataDesc = "Restore your projects from a backup",
+    importSuccess = "Data imported successfully",
+
+    contact = "Contact",
+    website = "Website",
+    email = "Email",
+    sendEmail = "Send email",
 
     save = "Save",
     cancel = "Cancel",

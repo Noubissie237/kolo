@@ -79,6 +79,7 @@ fun ProjectDetailsScreen(
     onAddSaving: () -> Unit,
     onViewHistory: () -> Unit,
     onEditItem: (Long) -> Unit = {},
+    onEditProject: () -> Unit = {},
     viewModel: KoloViewModel = viewModel(
         factory = KoloViewModelFactory(
             (LocalContext.current.applicationContext as com.propentatech.kolo.KoloApplication).repository,
@@ -165,6 +166,13 @@ fun ProjectDetailsScreen(
                 actions = {
                     IconButton(onClick = onViewHistory) {
                         Icon(Icons.Default.History, contentDescription = strings.savingsHistory)
+                    }
+                    IconButton(onClick = onEditProject) {
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = strings.editProject,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
                     IconButton(onClick = { showDeleteConfirm = true }) {
                         Icon(

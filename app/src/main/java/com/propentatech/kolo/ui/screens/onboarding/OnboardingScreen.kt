@@ -83,12 +83,8 @@ fun OnboardingScreen(
         // Logo
         Box(
             modifier = Modifier
-                .size(200.dp)
-                .clip(CircleShape)
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    shape = CircleShape
-                ),
+                .size(300.dp)
+                .clip(CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Image(
