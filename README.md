@@ -1,8 +1,10 @@
+<!-- Ajout de l'image -->
+<img src="./app/src/main/res/drawable/logo_kolo.png" alt="kolo logo" width="200"/>
+
 # Kolo - Smart Savings Planner
 
 **Kolo** est une application Android moderne de gestion de projets d'épargne qui vous aide à planifier, suivre et atteindre vos objectifs financiers.
 
-> *Kolo* signifie "économiser" ou "épargner" en langue Bamiléké (Cameroun)
 
 ## Fonctionnalités
 
