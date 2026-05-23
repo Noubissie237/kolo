@@ -13,6 +13,7 @@ import androidx.navigation.navArgument
 import com.propentatech.kolo.ui.screens.additem.AddItemScreen
 import com.propentatech.kolo.ui.screens.addsaving.AddSavingScreen
 import com.propentatech.kolo.ui.screens.createproject.CreateProjectScreen
+import com.propentatech.kolo.ui.screens.edititem.EditItemScreen
 import com.propentatech.kolo.ui.screens.home.HomeScreen
 import com.propentatech.kolo.ui.screens.onboarding.OnboardingScreen
 import com.propentatech.kolo.ui.screens.projectdetails.ProjectDetailsScreen
@@ -119,6 +120,9 @@ fun KoloNavGraph(
                 },
                 onViewHistory = {
                     navController.navigate(Screen.SavingsHistory.createRoute(projectId))
+                },
+                onEditItem = { itemId ->
+                    navController.navigate(Screen.EditItem.createRoute(projectId, itemId))
                 }
             )
         }
@@ -135,6 +139,26 @@ fun KoloNavGraph(
                 projectId = projectId,
                 onBack = { navController.popBackStack() },
                 onItemAdded = { navController.popBackStack() }
+            )
+        }
+
+        // ========================================================
+        // Edit Item
+        // ========================================================
+        composable(
+            route = Screen.EditItem.route,
+            arguments = listOf(
+                navArgument("projectId") { type = NavType.LongType },
+                navArgument("itemId") { type = NavType.LongType }
+            )
+        ) { backStackEntry ->
+            val projectId = backStackEntry.arguments?.getLong("projectId") ?: return@composable
+            val itemId = backStackEntry.arguments?.getLong("itemId") ?: return@composable
+            EditItemScreen(
+                projectId = projectId,
+                itemId = itemId,
+                onBack = { navController.popBackStack() },
+                onItemUpdated = { navController.popBackStack() }
             )
         }
 

@@ -128,6 +128,12 @@ class KoloViewModel(
         }
     }
 
+    fun updateProjectItem(item: ProjectItemEntity) {
+        viewModelScope.launch {
+            repository.updateItem(item)
+        }
+    }
+
     fun deleteProjectItem(item: ProjectItemEntity) {
         viewModelScope.launch {
             repository.deleteItem(item)

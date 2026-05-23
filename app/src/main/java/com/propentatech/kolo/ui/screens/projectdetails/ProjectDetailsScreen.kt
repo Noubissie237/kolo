@@ -78,6 +78,7 @@ fun ProjectDetailsScreen(
     onAddItem: () -> Unit,
     onAddSaving: () -> Unit,
     onViewHistory: () -> Unit,
+    onEditItem: (Long) -> Unit = {},
     viewModel: KoloViewModel = viewModel(
         factory = KoloViewModelFactory(
             (LocalContext.current.applicationContext as com.propentatech.kolo.KoloApplication).repository,
@@ -240,7 +241,7 @@ fun ProjectDetailsScreen(
                     ProjectItemRow(
                         item = item,
                         onDelete = { itemToDelete = item },
-                        onEdit = { itemToEdit = item }
+                        onEdit = { onEditItem(item.id) }
                     )
                 }
             }
