@@ -1,5 +1,11 @@
 package com.propentatech.kolo.ui.screens.projectdetails
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,17 +27,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Divider
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -50,6 +57,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -87,12 +95,15 @@ fun ProjectDetailsScreen(
 
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showFabMenu by remember { mutableStateOf(false) }
+    var itemToDelete by remember { mutableStateOf<ProjectItemEntity?>(null) }
+    var itemToEdit by remember { mutableStateOf<ProjectItemEntity?>(null) }
 
     if (project == null) return
 
     val currentProject = project!!
     val progress = KoloUtils.calculateProgress(savedAmount, targetAmount)
 
+    // Modal de confirmation pour supprimer le projet
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
@@ -111,6 +122,30 @@ fun ProjectDetailsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text(strings.cancel)
+                }
+            }
+        )
+    }
+
+    // Modal de confirmation pour supprimer un élément
+    itemToDelete?.let { item ->
+        AlertDialog(
+            onDismissRequest = { itemToDelete = null },
+            title = { Text(strings.delete) },
+            text = { Text("${strings.projectDeleteConfirm} '${item.title}' ?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteProjectItem(item)
+                        itemToDelete = null
+                    }
+                ) {
+                    Text(strings.yes, color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { itemToDelete = null }) {
                     Text(strings.cancel)
                 }
             }
@@ -144,69 +179,18 @@ fun ProjectDetailsScreen(
             )
         },
         floatingActionButton = {
-            Box {
-                FloatingActionButton(
-                    onClick = { showFabMenu = !showFabMenu },
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    shape = RoundedCornerShape(20.dp),
-                    modifier = Modifier.size(64.dp)
-                ) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = strings.addItem,
-                        modifier = Modifier.size(28.dp)
-                    )
+            SpeedDialFAB(
+                expanded = showFabMenu,
+                onExpandedChange = { showFabMenu = it },
+                onAddItem = {
+                    showFabMenu = false
+                    onAddItem()
+                },
+                onAddSaving = {
+                    showFabMenu = false
+                    onAddSaving()
                 }
-                
-                DropdownMenu(
-                    expanded = showFabMenu,
-                    onDismissRequest = { showFabMenu = false },
-                    modifier = Modifier
-                        .offset(x = (-8).dp)
-                ) {
-                    DropdownMenuItem(
-                        text = { 
-                            Text(
-                                text = strings.addItem,
-                                style = MaterialTheme.typography.bodyLarge
-                            ) 
-                        },
-                        onClick = {
-                            showFabMenu = false
-                            onAddItem()
-                        },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.ShoppingBag,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        },
-                        modifier = Modifier.padding(vertical = 4.dp)
-                    )
-                    DropdownMenuItem(
-                        text = { 
-                            Text(
-                                text = strings.addSaving,
-                                style = MaterialTheme.typography.bodyLarge
-                            ) 
-                        },
-                        onClick = {
-                            showFabMenu = false
-                            onAddSaving()
-                        },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.Savings,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        },
-                        modifier = Modifier.padding(vertical = 4.dp)
-                    )
-                }
-            }
+            )
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
@@ -255,7 +239,8 @@ fun ProjectDetailsScreen(
                 items(items, key = { it.id }) { item ->
                     ProjectItemRow(
                         item = item,
-                        onDelete = { viewModel.deleteProjectItem(item) }
+                        onDelete = { itemToDelete = item },
+                        onEdit = { itemToEdit = item }
                     )
                 }
             }
@@ -427,7 +412,8 @@ fun ForecastItem(label: String, amount: Double) {
 @Composable
 fun ProjectItemRow(
     item: ProjectItemEntity,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onEdit: () -> Unit
 ) {
     val strings = LocalStrings.current
     
@@ -459,6 +445,15 @@ fun ProjectItemRow(
                 Spacer(modifier = Modifier.width(8.dp))
             }
             
+            IconButton(onClick = onEdit) {
+                Icon(
+                    Icons.Default.Edit,
+                    contentDescription = strings.editItem,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            
             IconButton(onClick = onDelete) {
                 Icon(
                     Icons.Default.Delete,
@@ -467,6 +462,117 @@ fun ProjectItemRow(
                     modifier = Modifier.size(20.dp)
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun SpeedDialFAB(
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    onAddItem: () -> Unit,
+    onAddSaving: () -> Unit
+) {
+    val strings = LocalStrings.current
+    val rotation by animateFloatAsState(
+        targetValue = if (expanded) 45f else 0f,
+        label = "FAB rotation"
+    )
+    
+    Column(
+        horizontalAlignment = Alignment.End,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Mini FAB pour ajouter un élément
+        AnimatedVisibility(
+            visible = expanded,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(8.dp),
+                    tonalElevation = 2.dp,
+                    shadowElevation = 4.dp
+                ) {
+                    Text(
+                        text = strings.addItem,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                SmallFloatingActionButton(
+                    onClick = onAddItem,
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(
+                        Icons.Default.ShoppingBag,
+                        contentDescription = strings.addItem,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        }
+        
+        // Mini FAB pour ajouter une épargne
+        AnimatedVisibility(
+            visible = expanded,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(8.dp),
+                    tonalElevation = 2.dp,
+                    shadowElevation = 4.dp
+                ) {
+                    Text(
+                        text = strings.addSaving,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                SmallFloatingActionButton(
+                    onClick = onAddSaving,
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Savings,
+                        contentDescription = strings.addSaving,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        }
+        
+        // FAB principal
+        FloatingActionButton(
+            onClick = { onExpandedChange(!expanded) },
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Icon(
+                imageVector = if (expanded) Icons.Default.Close else Icons.Default.Add,
+                contentDescription = if (expanded) "Fermer" else "Ouvrir",
+                modifier = Modifier
+                    .size(24.dp)
+                    .rotate(rotation)
+            )
         }
     }
 }
