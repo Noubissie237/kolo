@@ -494,7 +494,7 @@ fun SpeedDialFAB(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Surface(
-                    color = MaterialTheme.colorScheme.surface,
+                    color = MaterialTheme.colorScheme.primaryContainer,
                     shape = RoundedCornerShape(8.dp),
                     tonalElevation = 2.dp,
                     shadowElevation = 4.dp
@@ -503,7 +503,8 @@ fun SpeedDialFAB(
                         text = strings.addItem,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontWeight = FontWeight.Medium
                     )
                 }
                 SmallFloatingActionButton(
@@ -532,7 +533,7 @@ fun SpeedDialFAB(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Surface(
-                    color = MaterialTheme.colorScheme.surface,
+                    color = MaterialTheme.colorScheme.primaryContainer,
                     shape = RoundedCornerShape(8.dp),
                     tonalElevation = 2.dp,
                     shadowElevation = 4.dp
@@ -541,7 +542,8 @@ fun SpeedDialFAB(
                         text = strings.addSaving,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontWeight = FontWeight.Medium
                     )
                 }
                 SmallFloatingActionButton(
